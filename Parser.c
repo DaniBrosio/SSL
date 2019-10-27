@@ -36,9 +36,10 @@ void main(void){
     cadenaDeEntrada = ingresarCadena();
     parteCadena = strtok(cadenaDeEntrada, CENTINELA);
     while (parteCadena != NULL) { 
+        printf("\nProcesando \"%s\"",parteCadena);
         procesar(parteCadena); 
         parteCadena = strtok(NULL, CENTINELA); 
-    } 
+    }   
 
     printf("\n:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::\n");
     for(int i = 0; i < cantPalabras; i++ )
@@ -46,23 +47,26 @@ void main(void){
 }
 
 estado proximoEstado(char token){
-    printf("\n:proximoEstado:");
     int nroColumna = encontrarColumna(token);
-    return tablaDeTransiciones[estadoActual][nroColumna];
+    printf("\nEstado: %d \t Token[posicion]: %c[%d]", estadoActual,token,nroColumna);
+    
+    if(nroColumna >= 0){
+        printf(" --> Nuevo Estado: %d", tablaDeTransiciones[estadoActual][nroColumna]);
+        return tablaDeTransiciones[estadoActual][nroColumna];
+    }
+    printf(" --> Nuevo Estado: 4! \t ");
+    return 4;
 }
 
 int encontrarColumna(char token){
-    printf("\n:encontrarColumna:");
-
-    int i = 0;
-    while ( indice[i] != token ){
-        i++;
+    for(int i = 0; i < NRO_TOKENS ; i++ ){
+        if(indice[i] == token) return i;
     }
-    return i;
+    return -1;
 }
 
 void procesar(char * potencialPalabra){
-    printf("\n:procesar:");
+    printf("\n:potencialPalabra: %s\n" ,potencialPalabra);
     for(int i = 0; i < strlen(potencialPalabra); i++){
         estadoActual = proximoEstado(potencialPalabra[i]);
     }
@@ -71,9 +75,12 @@ void procesar(char * potencialPalabra){
         case 1:
         case 3:    
         case 4:
+            estadoActual = 0;
             return;
 
         case 2:
+            estadoActual = 0;
+            printf("\nEncontré una! --> %s\n" ,potencialPalabra);
             cantPalabras++;
             strcpy(palabrasReconocidas[cantPalabras],potencialPalabra);
             return;
