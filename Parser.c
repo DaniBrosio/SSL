@@ -9,16 +9,16 @@ typedef unsigned int estado;
 // typedef char char;
 
 char indice[] = {'0','1','2','3','4','5','6','7','8','9','.','F'};
-const estado estados[] = {0,1,3,4,2};
+const estado estados[] = {0,1,5,2,3};
 estado estadoActual = 0;
-char palabrasReconocidas[100][3];
+char palabrasReconocidas[100][5];
 int cantPalabras = 0;
 const estado tablaDeTransiciones[NRO_ESTADOS][NRO_TOKENS] = {
-    {1,1,1,1,1,1,1,1,1,1,4,4},
-    {4,4,4,4,4,4,4,4,4,4,3,2},
-    {2,2,4,4,4,4,4,4,4,4,4,4},
-    {4,4,4,4,4,4,4,4,4,4,4,4},
-    {4,4,4,4,4,4,4,4,4,4,4,4}
+    {1,1,1,1,1,1,1,1,1,1,4,4},  //0
+    {4,4,4,4,4,4,4,4,4,4,2,3},  //1
+    {3,3,4,4,4,4,4,4,4,4,4,4},  //2
+    {4,4,4,4,4,4,4,4,4,4,4,4},  //3
+    {4,4,4,4,4,4,4,4,4,4,4,4}   //4
 };
 
 //Prototipos:
@@ -73,16 +73,16 @@ void procesar(char * potencialPalabra){
     switch (estadoActual){
         case 0:
         case 1:
-        case 3:    
-        case 4:
+        case 4:    
             estadoActual = 0;
             return;
 
         case 2:
+        case 3:
             estadoActual = 0;
-            printf("\nEncontré una! --> %s\n" ,potencialPalabra);
-            cantPalabras++;
+            printf("\nEncontre una! --> %s\n" ,potencialPalabra);
             strcpy(palabrasReconocidas[cantPalabras],potencialPalabra);
+            cantPalabras++;
             return;
 
     }
