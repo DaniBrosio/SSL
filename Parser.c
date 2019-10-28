@@ -6,7 +6,6 @@
 char * CENTINELA = "#";
 
 typedef unsigned int estado;
-// typedef char char;
 
 char diccionario[] = {'0','1','2','3','4','5','6','7','8','9','.','F'};
 const estado estados[] = {0,1,2,3,4,5};  // 0: Inicial, 3 y 4: Aceptacion, 5:Estado adicional para completar el AFD (Rechazo)
@@ -29,28 +28,60 @@ char * ingresarCadena(void);
 void procesar(char *);
 estado proximoEstado(char);
 int encontrarColumna(char);
+int continuar(void);
+void imprimirResultados(void);
+void analizar(char *);
 
 void main(void){
     char * cadenaDeEntrada;
     char * parteCadena;
+    int continuarFlag = 1;
     imprimirTabla();
-    cadenaDeEntrada = ingresarCadena();
-    parteCadena = strtok(cadenaDeEntrada, CENTINELA);
-    while (parteCadena != NULL) { 
-        printf("\nProcesando \"%s\"",parteCadena);
-        procesar(parteCadena); 
-        parteCadena = strtok(NULL, CENTINELA); 
-    }   
 
-    printf("\n:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::");
-    printf("\n::::::::::::::::::::::::::Palabras::Reconocidas::::::::::::::::::::::::::");
-    printf("\n:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::\n");
-    for(int i = 0; i < cantPalabras; i++ )
-        printf("%d) %s\n",i,palabrasReconocidas[i]);
+    do{
+        cadenaDeEntrada = ingresarCadena();
+        parteCadena = strtok(cadenaDeEntrada, CENTINELA); //Separar palabras
+        while (parteCadena != NULL) { 
+            procesar(parteCadena); 
+            parteCadena = strtok(NULL, CENTINELA); //Separar palabras
+        }   
+        imprimirResultados();
+        continuarFlag = continuar();
+    }while(continuarFlag);
+    
     printf(":::::::::::::::::::::::::::::::Goodbye:::::::::::::::::::::::::::::::::::\n");
 
 }
 
+//Funcion principal, analiza si la cadena es palabra
+void procesar(char * cadena){
+    estadoActual = 0; //Inizializar AFD
+    printf("\nProcesando \"%s\"",cadena);
+
+    if(strlen(cadena) == 0) return;
+    for(int i = 0; i < strlen(cadena) && estadoActual != 5; i++){  //Mientras no llegue al FDT y no sea un estado de rechazo permanente, repetir. Además se actualiza el carácter a analizar en cada iteracion
+        estadoActual = proximoEstado(cadena[i]); //Determinar el nuevo estado actual 
+    }
+    
+    //Si el estado es de aceptacion, la cadena procesada es una palabra reconocida
+    switch(estadoActual){
+        //Estados de rechazo
+        case 0:
+        case 1:
+        case 2:    
+        case 5:    
+            return;
+        //Estados de Aceptacion
+        case 3:
+        case 4:
+            printf("  -->  Es Palabra!" ,cadena);
+            strcpy(palabrasReconocidas[cantPalabras],cadena); //Agrego la palabra a la lista
+            cantPalabras++;
+            return;
+    }
+} 
+
+//Implementa el AFD segun la TT
 estado proximoEstado(char token){
     int nroColumna = encontrarColumna(token);
     // printf("\nEstado: %d \t Token[posicion]: %c[%d]", estadoActual,token,nroColumna);        //Util para debuggear
@@ -61,6 +92,7 @@ estado proximoEstado(char token){
     return 5;
 }
 
+//Busca columna de la tabla segun token
 int encontrarColumna(char token){
     for(int i = 0; i < NRO_TOKENS ; i++ ){
         if(diccionario[i] == token) return i;
@@ -68,35 +100,33 @@ int encontrarColumna(char token){
     return -1;
 }
 
-void procesar(char * potencialPalabra){
-    for(int i = 0; i < strlen(potencialPalabra); i++){
-        estadoActual = proximoEstado(potencialPalabra[i]);
-    }
-    switch (estadoActual){
-        //Estados de rechazo
-        case 0:
-        case 1:
-        case 2:    
-        case 5:    
-            estadoActual = 0;
-            return;
-        //Estados de Aceptacion
-        case 3:
-        case 4:
-            estadoActual = 0;
-            printf("  -->  Es Palabra!" ,potencialPalabra);
-            strcpy(palabrasReconocidas[cantPalabras],potencialPalabra);
-            cantPalabras++;
-            return;
-
-    }
-}
-
 char * ingresarCadena(void){
     static char cadena[100];
     printf("\nIngrese una cadena de caracteres: ");
     scanf("%s",cadena);
     return cadena;
+}
+
+int continuar(void){
+    char res;
+    printf("\nContinuar? (S/N): ");
+    scanf(" %c",&res);
+    if(res == 's' || res == 'S') return 1;
+    if(res == 'n' || res == 'N') return 0;
+
+    while( res != 'n' && res != 'N' && res != 's' && res != 'S'){
+        printf("\nIngrese S o N: ");
+        scanf(" %c",&res);
+        if(res == 's' || res == 'S') return 1;
+        if(res == 'n' || res == 'N') return 0;
+    }
+}
+
+void imprimirdiccionarios(void){
+    printf("\t|\t");
+    for(int i=0; i < NRO_TOKENS; i++)
+        printf("%c\t",diccionario[i]);
+    printf("\n___________________________________________________________________________________________________________");
 }
 
 void imprimirTabla(void){
@@ -111,10 +141,10 @@ void imprimirTabla(void){
 
 }
 
-void imprimirdiccionarios(void){
-    printf("\t|\t");
-    for(int i=0; i < NRO_TOKENS; i++)
-        printf("%c\t",diccionario[i]);
-    printf("\n___________________________________________________________________________________________________________");
+void imprimirResultados(void){
+    printf("\n:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::");
+    printf("\n::::::::::::::::::::::::::Palabras::Reconocidas::::::::::::::::::::::::::");
+    printf("\n:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::\n");
+    for(int i = 0; i < cantPalabras; i++ )
+        printf("%d) %s\n",i,palabrasReconocidas[i]);
 }
-
