@@ -2,28 +2,29 @@
 #include <string.h>
 
 #define NRO_TOKENS 12
-#define NRO_ESTADOS 5
+#define NRO_ESTADOS 6
 char * CENTINELA = "#";
 
 typedef unsigned int estado;
 // typedef char char;
 
-char indice[] = {'0','1','2','3','4','5','6','7','8','9','.','F'};
-const estado estados[] = {0,1,5,2,3};
+char diccionario[] = {'0','1','2','3','4','5','6','7','8','9','.','F'};
+const estado estados[] = {0,1,2,3,4,5};  // 0: Inicial, 3 y 4: Aceptacion, 5:Estado adicional para completar el AFD (Rechazo)
 estado estadoActual = 0;
 char palabrasReconocidas[100][5];
 int cantPalabras = 0;
 const estado tablaDeTransiciones[NRO_ESTADOS][NRO_TOKENS] = {
-    {1,1,1,1,1,1,1,1,1,1,4,4},  //0
-    {4,4,4,4,4,4,4,4,4,4,2,3},  //1
-    {3,3,4,4,4,4,4,4,4,4,4,4},  //2
-    {4,4,4,4,4,4,4,4,4,4,4,4},  //3
-    {4,4,4,4,4,4,4,4,4,4,4,4}   //4
+    {1,1,1,1,1,1,1,1,1,1,5,5},  //0
+    {2,2,2,2,2,2,2,2,2,2,3,4},  //1
+    {2,2,2,2,2,2,2,2,2,2,5,4},  //2
+    {4,4,5,5,5,5,5,5,5,5,5,5},  //3
+    {5,5,5,5,5,5,5,5,5,5,5,5},  //4
+    {5,5,5,5,5,5,5,5,5,5,5,5}   //5
 };
 
 //Prototipos:
 void imprimirTabla(void);
-void imprimirIndices(void);
+void imprimirdiccionarios(void);
 char * ingresarCadena(void);
 void procesar(char *);
 estado proximoEstado(char);
@@ -41,46 +42,49 @@ void main(void){
         parteCadena = strtok(NULL, CENTINELA); 
     }   
 
+    printf("\n:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::");
+    printf("\n::::::::::::::::::::::::::Palabras::Reconocidas::::::::::::::::::::::::::");
     printf("\n:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::\n");
     for(int i = 0; i < cantPalabras; i++ )
-        printf("\n%d) %s",i,palabrasReconocidas[i]);
+        printf("%d) %s\n",i,palabrasReconocidas[i]);
+    printf(":::::::::::::::::::::::::::::::Goodbye:::::::::::::::::::::::::::::::::::\n");
+
 }
 
 estado proximoEstado(char token){
     int nroColumna = encontrarColumna(token);
-    printf("\nEstado: %d \t Token[posicion]: %c[%d]", estadoActual,token,nroColumna);
-    
+    // printf("\nEstado: %d \t Token[posicion]: %c[%d]", estadoActual,token,nroColumna);        //Util para debuggear
     if(nroColumna >= 0){
-        printf(" --> Nuevo Estado: %d", tablaDeTransiciones[estadoActual][nroColumna]);
+        // printf(" --> Nuevo Estado: %d", tablaDeTransiciones[estadoActual][nroColumna]);      //Util para debuggear
         return tablaDeTransiciones[estadoActual][nroColumna];
     }
-    printf(" --> Nuevo Estado: 4! \t ");
-    return 4;
+    return 5;
 }
 
 int encontrarColumna(char token){
     for(int i = 0; i < NRO_TOKENS ; i++ ){
-        if(indice[i] == token) return i;
+        if(diccionario[i] == token) return i;
     }
     return -1;
 }
 
 void procesar(char * potencialPalabra){
-    printf("\n:potencialPalabra: %s\n" ,potencialPalabra);
     for(int i = 0; i < strlen(potencialPalabra); i++){
         estadoActual = proximoEstado(potencialPalabra[i]);
     }
     switch (estadoActual){
+        //Estados de rechazo
         case 0:
         case 1:
-        case 4:    
+        case 2:    
+        case 5:    
             estadoActual = 0;
             return;
-
-        case 2:
+        //Estados de Aceptacion
         case 3:
+        case 4:
             estadoActual = 0;
-            printf("\nEncontre una! --> %s\n" ,potencialPalabra);
+            printf("  -->  Es Palabra!" ,potencialPalabra);
             strcpy(palabrasReconocidas[cantPalabras],potencialPalabra);
             cantPalabras++;
             return;
@@ -96,18 +100,21 @@ char * ingresarCadena(void){
 }
 
 void imprimirTabla(void){
-    imprimirIndices();
+    printf("\nTabla de Transiciones:\n");
+    imprimirdiccionarios();
     for(int i = 0; i < NRO_ESTADOS; i++){
         printf("\n%d\t|\t",estados[i]);
         for(int j = 0; j < NRO_TOKENS; j++)
             printf("%d\t", tablaDeTransiciones[i][j]);
     }
+    printf("\n");
+
 }
 
-void imprimirIndices(void){
+void imprimirdiccionarios(void){
     printf("\t|\t");
-    for(int i=0; i<NRO_TOKENS; i++)
-        printf("%c\t",indice[i]);
+    for(int i=0; i < NRO_TOKENS; i++)
+        printf("%c\t",diccionario[i]);
     printf("\n___________________________________________________________________________________________________________");
 }
 
